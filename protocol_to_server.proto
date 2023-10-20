@@ -1,0 +1,49 @@
+syntax = "proto2";
+
+message BCC_Dist_toServer {
+
+  enum CommandTypetoServer {
+    CMD_ID = 0; // minha identificação
+    CMD_LIST = 1; //lista usuários do servidor
+    CMD_SENDALL = 2; //envia para todos usuários
+    CMD_SENDONE = 3; //envia para um único usuário
+    CMD_SENDLIST = 4; //envia para vários usuários
+  }
+
+  required CommandTypetoServer command = 1 [ default = CMD_ID ];
+  optional string myname = 2;
+  repeated BCC_users receivers = 3;
+  optional string message= 4;
+}
+
+// client CMD_SENDALL server -> apenas messagem, server ignora lista de usuários
+// client CMD_ID server -> server identifica usuário como online, client deve enviar a cada 120 segundos 
+//     passado esse tempo e o client não se identificou, server coloca na lista de off line
+// client CMD_SENDONE server -> server envia mensagem para um único usuário (ambos devem ser enviados)
+// client CMD_LIST server -> server envia a lista de usuários online para o client
+// client CMD_SENDLIST -> igual SENDONE, mas obrigatório lista de usuários com 1 ou mais 
+
+message BCC_Dist_toClient{
+  enum CommandTypetoClient {
+    CMD_LIST = 0; //lista usuários do servidor
+    CMD_MSG = 1; //mensagem
+    CMD_ERROR = 2; //qualquer erro do servidor
+  }
+  required CommandTypetoClient command = 1 [ default = CMD_MSG ];
+  optional BCC_formatMessage message = 2;
+  repeated BCC_users users = 3; // lista de usuários
+  optional string error_message = 4;
+}
+
+message BCC_users{
+   required string name = 1;
+}
+
+message BCC_formatMessage{ //pode gravar em disco ou enviar pela rede
+    required string receiver = 1;
+    required string message = 2;
+    optional string source = 3; // remetente da mensagem
+    optional int64 timestamp=4; //horário, em segundos, do envio da mensagem
+}
+
+
